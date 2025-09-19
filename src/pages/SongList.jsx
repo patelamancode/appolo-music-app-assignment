@@ -2,7 +2,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useMemo, useState } from "react";
 import { logout } from "../redux/authSlice";
 import { deleteSong } from "../redux/songSlice";
-import { Button, Container, Paper, Box, Typography, Alert, Snackbar } from "@mui/material";
+import { Button, Container, Paper, Box, Typography, Alert, Snackbar, Grid, Card, CardActionArea, CardMedia, CardContent, IconButton, Tooltip } from "@mui/material";
+import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Filter from "../components/Filter";
 
@@ -113,34 +116,73 @@ export default function SongListPage() {
         ) : filteredSongs.length === 0 ? (
           <Alert severity="warning">No songs match your search/filters.</Alert>
         ) : (
-          <Box sx={{ maxHeight: "50vh", overflowY: "auto", pr: 1 }}>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {filteredSongs.map((song) => (
-                <Paper key={song.id} variant="outlined" sx={{ p: 2 }}>
-                  <Typography variant="subtitle1">{song.title}</Typography>
-                  <Typography variant="body2">Singer: {song.singer}</Typography>
-                  <Typography variant="body2">Year: {song.year}</Typography>
-                  <Box sx={{ mt: 1, display: "flex", gap: 1 }}>
-                    <Button variant="outlined" size="small" onClick={() => navigate(`/edit/${song.id}`)}>Edit</Button>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      color="error"
-                      onClick={() => {
-                        dispatch(deleteSong({ owner: user.email, id: song.id }));
-                        navigate("/songs", { replace: true, state: { message: "Song deleted" } });
-                      }}
-                    >
-                      Delete
-                    </Button>
-                    <Button variant="contained" size="small" onClick={() => alert(`Playing ${song.title} 🎵`)}>
-                      Play
-                    </Button>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            {filteredSongs.map((song) => (
+              <Grid key={song.id} item xs={12} sm={6} md={4} lg={3}>
+                <Card variant="outlined" sx={{ position: "relative", bgcolor: "background.paper", overflow: "hidden" }}>
+                  <CardActionArea onClick={() => alert(`Playing ${song.title} 🎵`)}>
+                    <Box sx={{ position: "relative" }}>
+                      <CardMedia
+                        component="img"
+                        height="180"
+                        image={`https://picsum.photos/seed/${encodeURIComponent(song.title)}-poster/600/400`}
+                        alt={`${song.title} poster`}
+                        sx={{ filter: "saturate(0.9) contrast(1.05)" }}
+                      />
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          inset: 0,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          bgcolor: "rgba(0,0,0,0.0)",
+                          transition: "background-color 150ms ease-in-out",
+                          "&:hover": { bgcolor: "rgba(0,0,0,0.35)" },
+                        }}
+                      >
+                        <Box sx={{
+                          width: 56,
+                          height: 56,
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          bgcolor: "rgba(29,185,84,0.95)",
+                          transform: "scale(0.9)",
+                          opacity: 0,
+                          transition: "all 150ms ease-in-out",
+                          "&:hover": { transform: "scale(1.0)" },
+                          pointerEvents: "none",
+                          [".MuiCardActionArea-root:hover &"]: {
+                            opacity: 1,
+                          },
+                        }}>
+                          <PlayArrowRoundedIcon fontSize="large" />
+                        </Box>
+                      </Box>
+                    </Box>
+                  </CardActionArea>
+                  <CardContent>
+                    <Typography variant="subtitle1" noWrap>{song.title}</Typography>
+                    <Typography variant="body2" color="text.secondary" noWrap>{song.singer} • {song.year}</Typography>
+                  </CardContent>
+                  <Box sx={{ position: "absolute", top: 6, right: 6, display: "flex", gap: 0.5 }}>
+                    <Tooltip title="Edit">
+                      <IconButton size="small" color="default" onClick={(e) => { e.stopPropagation?.(); navigate(`/edit/${song.id}`); }}>
+                        <EditRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete">
+                      <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation?.(); dispatch(deleteSong({ owner: user.email, id: song.id })); navigate("/songs", { replace: true, state: { message: "Song deleted" } }); }}>
+                        <DeleteRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                   </Box>
-                </Paper>
-              ))}
-            </Box>
-          </Box>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         )}
       </Paper>
       <Snackbar
